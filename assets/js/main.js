@@ -2,8 +2,12 @@ var main = (function($) {
     // custom code goes here
     'use strict';
 
+    var localStoragePrefix = 'vendors';
+
     var showVendors = function (data) {
         var $list = $('.sub-nav ul');
+        var dataAsString = '';
+
         $list.empty();
 
         if(!data.length) {
@@ -15,11 +19,35 @@ var main = (function($) {
         });
 
         $('.sub-nav h2 span').fadeOut(1000);
+
+        dataAsString = JSON.stringify(data);
+        console.log(dataAsString);
+        localStorage.setItem(localStoragePrefix, dataAsString);
     };
 
     var loadVendors = function () {
         $('.sub-nav h2 span').show().addClass('glyphicon-time');
-        $.get('/vendor', showVendors);
+        $.ajax({
+            url: '/vendor',
+            type: 'GET',
+            success: showVendors,
+            error: function(error) {
+                // console.log(error);
+
+                loadVendorsFromLocalStorage();
+            }
+        });
+    };
+
+    var loadVendorsFromLocalStorage = function() {
+        var vendorString,
+            vendors = {};
+
+        vendorString = localStorage.getItem(localStoragePrefix);
+        vendors = JSON.parse(vendorString);
+
+        // console.log(vendors);
+        showVendors(vendors);
     };
 
     var showReloadLink = function () {
@@ -50,7 +78,7 @@ var main = (function($) {
     var addCacheEventHandlers = function () {
       // see http://diveintohtml5.info/offline.html for info on offline mode
       // specifically see the events section.
-      // It could be useful to watch for the noupdate event which signifies 
+      // It could be useful to watch for the noupdate event which signifies
       // the page was served from cache.
     };
 
@@ -60,6 +88,7 @@ var main = (function($) {
         loadVendors();
         showReloadLink();
         enableRefresh();
+        addCacheEventHandlers();
     };
 
     return {
